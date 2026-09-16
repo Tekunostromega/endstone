@@ -1,0 +1,51 @@
+name: MCG Endstone 26.51 Wheel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wheel:
+    name: Windows CP313 wheel
+    runs-on: windows-2022
+    steps:
+      - name: Checkout Endstone 26.51 PR source
+        uses: actions/checkout@v6
+        with:
+          repository: EndstoneMC/endstone
+          ref: a9c466afc3e43682eb9ee78396cec004c08abf12
+          fetch-depth: 0
+          submodules: true
+
+      - name: Restore Conan cache
+        id: conan-cache
+        uses: ./.github/actions/conan-cache/restore
+
+      - name: Set up Conan
+        uses: ./.github/actions/setup-conan
+        with:
+          build-type: Release
+          install-dependencies: 'false'
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x86_64
+
+      - name: Set up CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: Build CPython 3.13 Windows wheel
+        uses: pypa/cibuildwheel@v3.4.1
+        env:
+          CIBW_BUILD: cp313-win_amd64
+          CIBW_BUILD_VERBOSITY: 1
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: endstone-26.51-cp313-win_amd64
+          path: ./wheelhouse/*.whl
+          archive: false
